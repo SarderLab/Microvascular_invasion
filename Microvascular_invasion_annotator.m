@@ -13,11 +13,12 @@ Pref.Str2Num='always';
 
 
 [annot_region,neg_mask]=get_annotations(wsi_path,xml_path,Pref);
-detected_objects=capillary_detection(annot_region,0.5,[10,10],[101,101],500);
+detected_objects=capillary_detection(annot_region,0.4,[10,10],[101,101],500);
 
 detected_objects(neg_mask)=0;
 figure(1),imshow(annot_region)
 figure(2),imshow(neg_mask)
+
 [d1,d2]=size(neg_mask);
 subArray1=1:(step_size*box_size):d1;
 subArray1(end)=d1;
@@ -65,39 +66,53 @@ for i=1:length(subArray1)
             subArray=padarray(subArray,[0,box_size-(yEn-ySt)],'post');
             subMask=padarray(subMask,[0,box_size-(yEn-ySt)],'post');
         end
+        subImMasked=subArray;
+        subImMasked(~repmat(subMask,[1,1,3]))=0;
+        
         figure(3),subplot(121),imshow(subArray)
-        subplot(122),imshow(subMask),title('Select capillaries')
-
+        subplot(122),imshow(subImMasked),title('Select unclosed capillaries')
+        open_caps=bwselect();
+        open_caps=open_caps(:,:,1);
+        
+        detected_objects(xSt:xEn,ySt:yEn)=detected_objects(xSt:xEn,ySt:yEn)-open_caps;
+        open_caps=binary_alpha_shape(open_caps,20,box_size);
+        detected_objects(xSt:xEn,ySt:yEn)=detected_objects(xSt:xEn,ySt:yEn)+open_caps;
+        subMask=subMask|open_caps;
+        
+        subImMasked=subArray;
+        subImMasked(~repmat(subMask,[1,1,3]))=0;
+        subplot(122),imshow(subImMasked),title('Select capillaries')
+        
         caps=bwselect();
+        caps=caps(:,:,1);
         subMask(caps)=0;
         saveMask(xSt:xEn,ySt:yEn)=saveMask(xSt:xEn,ySt:yEn)+double(caps);
         detected_objects(xSt:xEn,ySt:yEn)=detected_objects(xSt:xEn,ySt:yEn)-caps;
         
-        subplot(122),imshow(subMask),title('Select invaded capillaries')
+      
+        subImMasked(~repmat(subMask,[1,1,3]))=0;
+        
+        subplot(122),imshow(subImMasked),title('Select invaded capillaries')
         inv_caps=bwselect();
+        inv_caps=inv_caps(:,:,1);
         subMask(inv_caps)=0;
         saveMask(xSt:xEn,ySt:yEn)=saveMask(xSt:xEn,ySt:yEn)+2*double(inv_caps);
         detected_objects(xSt:xEn,ySt:yEn)=detected_objects(xSt:xEn,ySt:yEn)-inv_caps;
         
-        subplot(122),imshow(subMask),title('Select unclosed capillaries')
-        open_caps=bwselect();
-        detected_objects(xSt:xEn,ySt:yEn)=detected_objects(xSt:xEn,ySt:yEn)-open_caps;
-        open_caps=binary_alpha_shape(open_caps,30,box_size);
-        
-        subMask=subMask|open_caps;
-        
-        
-        subplot(122),imshow(subMask),title('Select closed, non-invaded capillaries')
-        caps_2=bwselect();
-        saveMask(xSt:xEn,ySt:yEn)=saveMask(xSt:xEn,ySt:yEn)+double(caps_2);
-        
-        subMask(caps_2)=0;
-        
-        
-        subplot(122),imshow(subMask),title('Select closed, invaded capillaries')
-        inv_caps_2=bwselect();
-        saveMask(xSt:xEn,ySt:yEn)=saveMask(xSt:xEn,ySt:yEn)+2*double(inv_caps_2);
-        
+%         
+%         
+%         
+%         subplot(122),imshow(subMask),title('Select closed, non-invaded capillaries')
+%         caps_2=bwselect();
+%         saveMask(xSt:xEn,ySt:yEn)=saveMask(xSt:xEn,ySt:yEn)+double(caps_2);
+%         
+%         subMask(caps_2)=0;
+%         
+%         
+%         subplot(122),imshow(subMask),title('Select closed, invaded capillaries')
+%         inv_caps_2=bwselect();
+%         saveMask(xSt:xEn,ySt:yEn)=saveMask(xSt:xEn,ySt:yEn)+2*double(inv_caps_2);
+%         
 
 %         subMask(open_caps)=0;
 %         saveMask(xSt:xEn,ySt:yEn)=saveMask(xSt:xEn,ySt:yEn)+3*double(inv_caps);
