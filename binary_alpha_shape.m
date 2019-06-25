@@ -4,6 +4,7 @@ function [closed_shapes]=binary_alpha_shape(binary_im,alpha,box_size)
 shp=alphaShape(x,y,alpha);
 
 closed_shapes=zeros(box_size+1,box_size+1);
+
 for p=1:numRegions(shp)
     [~,points]=boundaryFacets(shp,p);
     

@@ -57,6 +57,7 @@ c1=coords(:,1);
 c3=coords(:,3);
 c_diff=round(c3-c1);
 annot_region=openslide_read_region(annot_wsi,int32(c1(1)),int32(c1(2)),int32(c_diff(1)),int32(c_diff(2)));
+
 annot_region=annot_region(:,:,2:4);
 
 mask=zeros(int32(c_diff(2)),int32(c_diff(1)));

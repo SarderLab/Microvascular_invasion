@@ -13,7 +13,7 @@ Pref.Str2Num='always';
 
 
 [annot_region,neg_mask]=get_annotations(wsi_path,xml_path,Pref);
-detected_objects=capillary_detection(annot_region,0.4,[10,10],[101,101],500);
+detected_objects=capillary_detection(annot_region,0.5,[10,10],[101,101],500);
 
 detected_objects(neg_mask)=0;
 figure(1),imshow(annot_region)
@@ -99,25 +99,7 @@ for i=1:length(subArray1)
         saveMask(xSt:xEn,ySt:yEn)=saveMask(xSt:xEn,ySt:yEn)+2*double(inv_caps);
         detected_objects(xSt:xEn,ySt:yEn)=detected_objects(xSt:xEn,ySt:yEn)-inv_caps;
         
-%         
-%         
-%         
-%         subplot(122),imshow(subMask),title('Select closed, non-invaded capillaries')
-%         caps_2=bwselect();
-%         saveMask(xSt:xEn,ySt:yEn)=saveMask(xSt:xEn,ySt:yEn)+double(caps_2);
-%         
-%         subMask(caps_2)=0;
-%         
-%         
-%         subplot(122),imshow(subMask),title('Select closed, invaded capillaries')
-%         inv_caps_2=bwselect();
-%         saveMask(xSt:xEn,ySt:yEn)=saveMask(xSt:xEn,ySt:yEn)+2*double(inv_caps_2);
-%         
-
-%         subMask(open_caps)=0;
-%         saveMask(xSt:xEn,ySt:yEn)=saveMask(xSt:xEn,ySt:yEn)+3*double(inv_caps);
-%         detected_objects(xSt:xEn,ySt:yEn)=detected_objects(xSt:xEn,ySt:yEn)-open_caps;
-%         
+    
         figure(4),imagesc(saveMask)
         figure(5),imshow(detected_objects),pause
     end
@@ -128,4 +110,4 @@ end
 
 
 
-% images=dir(['test_images','\*.tif']);
+
