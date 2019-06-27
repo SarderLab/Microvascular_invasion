@@ -6,19 +6,22 @@ box_size=1000;
 step_size=0.5;
 
 
-
-wsi_path='C:\Users\bgginley\Desktop\Microvascular_invasion\Good Quality\S15-70548.1.A.4 - 2016-12-05 18.40.22.ndpi';
-xml_path='C:\Users\bgginley\Desktop\Microvascular_invasion\\Good Quality\S15-70548.1.A.4 - 2016-12-05 18.40.22.xml';
+ID='S15-70548.1.A.4 - 2016-12-05 18.40.22';
+wsi_path=['C:\Users\bgginley\Desktop\Microvascular_invasion\Good Quality\',ID,'.ndpi'];
+xml_path=['C:\Users\bgginley\Desktop\Microvascular_invasion\\Good Quality\',ID,'.xml'];
 Pref.Str2Num='always';
 
 
-[annot_region,neg_mask]=get_annotations(wsi_path,xml_path,Pref);
-detected_objects=capillary_detection(annot_region,0.5,[10,10],[101,101],500);
+[annot_region,neg_mask,ref_coord]=get_annotations(wsi_path,xml_path,Pref,2);
 
+return
+detected_objects=capillary_detection(annot_region,0.5,[10,10],[101,101],500);
+if sum(sum(neg_mask))>0
 detected_objects(neg_mask)=0;
+
 figure(1),imshow(annot_region)
 figure(2),imshow(neg_mask)
-
+end
 [d1,d2]=size(neg_mask);
 subArray1=1:(step_size*box_size):d1;
 subArray1(end)=d1;
@@ -69,16 +72,46 @@ for i=1:length(subArray1)
         subImMasked=subArray;
         subImMasked(~repmat(subMask,[1,1,3]))=0;
         
+        save_breaks=zeros(size(subMask));
+        while 1
+            figure(3),subplot(121),imshow(subArray)
+            subplot(122),imshow(subImMasked),title('Break connected objects')
+            h=drawfreehand('closed',false,'InteractionsAllowed','all'),pause
+            if ~isvalid(h)
+               break 
+            end
+            
+            bw=createMask(h);
+            bw=bw(:,:,1);
+            if sum(sum(bw))==0
+               break 
+                
+            else
+%                save_breaks=save_breaks|bw; 
+               if sum(sum(bw))>0
+                bw=imdilate(bw,strel('disk',2));
+                subMask(bw)=0;
+                subImMasked=subArray;
+                subImMasked(~repmat(subMask,[1,1,3]))=0;
+                end
+            end
+        end
+%         if sum(sum(save_breaks))>0
+%         save_breaks=imdilate(save_breaks,strel('disk',2));
+%         subMask(save_breaks)=0;
+%         subImMasked=subArray;
+%         subImMasked(~repmat(subMask,[1,1,3]))=0;
+%         end
         figure(3),subplot(121),imshow(subArray)
-        subplot(122),imshow(subImMasked),title('Select unclosed capillaries')
-        open_caps=bwselect();
-        open_caps=open_caps(:,:,1);
-        
-        detected_objects(xSt:xEn,ySt:yEn)=detected_objects(xSt:xEn,ySt:yEn)-open_caps;
-        open_caps=binary_alpha_shape(open_caps,20,box_size);
-        detected_objects(xSt:xEn,ySt:yEn)=detected_objects(xSt:xEn,ySt:yEn)+open_caps;
-        subMask=subMask|open_caps;
-        
+%         subplot(122),imshow(subImMasked),title('Select unclosed capillaries')
+%         open_caps=bwselect();
+%         open_caps=open_caps(:,:,1);
+%         
+%         detected_objects(xSt:xEn,ySt:yEn)=detected_objects(xSt:xEn,ySt:yEn)-open_caps;
+%         open_caps=binary_alpha_shape(open_caps,20,box_size);
+%         detected_objects(xSt:xEn,ySt:yEn)=detected_objects(xSt:xEn,ySt:yEn)+open_caps;
+%         subMask=subMask|open_caps;
+%         
         subImMasked=subArray;
         subImMasked(~repmat(subMask,[1,1,3]))=0;
         subplot(122),imshow(subImMasked),title('Select capillaries')
@@ -100,14 +133,13 @@ for i=1:length(subArray1)
         detected_objects(xSt:xEn,ySt:yEn)=detected_objects(xSt:xEn,ySt:yEn)-inv_caps;
         
     
-        figure(4),imagesc(saveMask)
-        figure(5),imshow(detected_objects),pause
+%         figure(4),imagesc(saveMask)
+%         figure(5),imshow(detected_objects),pause
     end
 end
 
 
 
-
-
+imwrite(uint8(saveMask),['Good Quality\',ID,'.png'])
 
 
