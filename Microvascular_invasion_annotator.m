@@ -12,16 +12,18 @@ xml_path=['C:\Users\bgginley\Desktop\Microvascular_invasion\\Good Quality\',ID,'
 Pref.Str2Num='always';
 
 
-[annot_region,neg_mask,ref_coord]=get_annotations(wsi_path,xml_path,Pref,2);
+[annot_region,neg_mask,ref_coord]=get_annotations(wsi_path,xml_path,Pref,4);
 
-return
+
 detected_objects=capillary_detection(annot_region,0.5,[10,10],[101,101],500);
+figure(1),imshow(annot_region)
 if sum(sum(neg_mask))>0
 detected_objects(neg_mask)=0;
 
-figure(1),imshow(annot_region)
+
 figure(2),imshow(neg_mask)
 end
+
 [d1,d2]=size(neg_mask);
 subArray1=1:(step_size*box_size):d1;
 subArray1(end)=d1;
@@ -140,6 +142,6 @@ end
 
 
 
-imwrite(uint8(saveMask),['Good Quality\',ID,'.png'])
+imwrite(uint8(saveMask),['Good Quality\',ID,'_',num2str(int32(ref_coord(1))),'_',num2str(int32(ref_coord(2))),'.png'])
 
 

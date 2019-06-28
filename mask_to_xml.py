@@ -71,15 +71,15 @@ def mask_to_xml(xml_path,annot_path,label_offsets, xml_filename, approx_downsamp
     #Annotations = read_xml(xml_path)
     tree = ET.parse(xml_path)
     Annotations = tree.getroot()
+    existing_layers=Annotations.findall('Annotation')
+    if len(existing_layers)==2:
+        # add annotation
+        for i in [3,4]: # exclude background class
+            Annotations = xml_add_annotation(Annotations=Annotations,xml_color=xml_color, annotationID=i)
 
-    # add annotation
-    for i in [2,3]: # exclude background class
-        Annotations = xml_add_annotation(Annotations=Annotations,xml_color=xml_color, annotationID=i)
-
-
-    for classregion in [2,3]:
+    for classregion in [3,4]:
         binaryMask = np.zeros(np.shape(wsiMask)).astype('uint8')
-        binaryMask[wsiMask == (classregion-1)] = 1
+        binaryMask[wsiMask == (classregion-2)] = 1
         pointsList = get_contour_points(binaryMask, min_size,approx_downsample, downsample,offset={'X': label_offsets[0],'Y': label_offsets[1]})
 
         for i in range(np.shape(pointsList)[0]):
@@ -88,4 +88,5 @@ def mask_to_xml(xml_path,annot_path,label_offsets, xml_filename, approx_downsamp
             Annotations = xml_add_region(Annotations=Annotations, pointList=pointList,label_offsets=label_offsets,approx_downsample=approx_downsample, annotationID=classregion)
 
     # save xml
+
     xml_save(Annotations=Annotations, filename=xml_filename)
