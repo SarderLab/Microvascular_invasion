@@ -12,7 +12,7 @@ xml_path=['C:\Users\bgginley\Desktop\Microvascular_invasion\\Good Quality\',ID,'
 Pref.Str2Num='always';
 
 
-[annot_region,neg_mask,ref_coord]=get_annotations(wsi_path,xml_path,Pref,4);
+[annot_region,neg_mask,ref_coord]=get_annotations(wsi_path,xml_path,Pref,5);
 
 
 detected_objects=capillary_detection(annot_region,0.5,[10,10],[101,101],500);
@@ -31,7 +31,9 @@ subArray1(end)=d1;
 subArray2=1:(step_size*box_size):d2;
 subArray2(end)=d2;
 
-saveMask=zeros(d1,d2);
+saveMask1=false(d1,d2);
+saveMask2=false(d1,d2);
+
 for i=1:length(subArray1)
     
     xSt=subArray1(i);
@@ -59,9 +61,9 @@ for i=1:length(subArray1)
         subArray=annot_region(xSt:xEn,ySt:yEn,:);
         subMask=detected_objects(xSt:xEn,ySt:yEn);
         if sum(sum(subMask))==0
-           continue 
-            
+           continue     
         end
+        
         if (xEn-xSt)<box_size
             subArray=padarray(subArray,[box_size-(xEn-xSt),0],'post');
             subMask=padarray(subMask,[box_size-(xEn-xSt),0],'post');
@@ -87,7 +89,6 @@ for i=1:length(subArray1)
             bw=bw(:,:,1);
             if sum(sum(bw))==0
                break 
-                
             else
 %                save_breaks=save_breaks|bw; 
                if sum(sum(bw))>0
@@ -95,6 +96,7 @@ for i=1:length(subArray1)
                 subMask(bw)=0;
                 subImMasked=subArray;
                 subImMasked(~repmat(subMask,[1,1,3]))=0;
+                detected_objects(xSt:xEn,ySt:yEn)=detected_objects(xSt:xEn,ySt:yEn)-bw;
                 end
             end
         end
@@ -121,7 +123,7 @@ for i=1:length(subArray1)
         caps=bwselect();
         caps=caps(:,:,1);
         subMask(caps)=0;
-        saveMask(xSt:xEn,ySt:yEn)=saveMask(xSt:xEn,ySt:yEn)+double(caps);
+        saveMask1(xSt:xEn,ySt:yEn)=saveMask1(xSt:xEn,ySt:yEn)|caps;
         detected_objects(xSt:xEn,ySt:yEn)=detected_objects(xSt:xEn,ySt:yEn)-caps;
         
       
@@ -131,17 +133,17 @@ for i=1:length(subArray1)
         inv_caps=bwselect();
         inv_caps=inv_caps(:,:,1);
         subMask(inv_caps)=0;
-        saveMask(xSt:xEn,ySt:yEn)=saveMask(xSt:xEn,ySt:yEn)+2*double(inv_caps);
+        saveMask2(xSt:xEn,ySt:yEn)=saveMask2(xSt:xEn,ySt:yEn)|inv_caps;
         detected_objects(xSt:xEn,ySt:yEn)=detected_objects(xSt:xEn,ySt:yEn)-inv_caps;
         
     
-%         figure(4),imagesc(saveMask)
+        figure(4),imagesc(double(saveMask1)+2*double(saveMask2))
 %         figure(5),imshow(detected_objects),pause
     end
 end
 
 
 
-imwrite(uint8(saveMask),['Good Quality\',ID,'_',num2str(int32(ref_coord(1))),'_',num2str(int32(ref_coord(2))),'.png'])
+imwrite(uint8(saveMask1+2*saveMask2),['Good Quality\',ID,'_',num2str(int32(ref_coord(1))),'_',num2str(int32(ref_coord(2))),'.png'])
 
 
