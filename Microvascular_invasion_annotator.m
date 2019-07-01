@@ -6,13 +6,13 @@ box_size=1000;
 step_size=0.5;
 
 
-ID='S15-70548.1.A.4 - 2016-12-05 18.40.22';
+ID='S15-70439.1.A.11 - 2016-12-05 18.34.15';
 wsi_path=['C:\Users\bgginley\Desktop\Microvascular_invasion\Good Quality\',ID,'.ndpi'];
 xml_path=['C:\Users\bgginley\Desktop\Microvascular_invasion\\Good Quality\',ID,'.xml'];
 Pref.Str2Num='always';
 
 
-[annot_region,neg_mask,ref_coord]=get_annotations(wsi_path,xml_path,Pref,5);
+[annot_region,neg_mask,ref_coord]=get_annotations(wsi_path,xml_path,Pref,2);
 
 
 detected_objects=capillary_detection(annot_region,0.5,[10,10],[101,101],500);
@@ -96,7 +96,7 @@ for i=1:length(subArray1)
                 subMask(bw)=0;
                 subImMasked=subArray;
                 subImMasked(~repmat(subMask,[1,1,3]))=0;
-                detected_objects(xSt:xEn,ySt:yEn)=detected_objects(xSt:xEn,ySt:yEn)-bw;
+                detected_objects(xSt:xEn,ySt:yEn)=detected_objects(xSt:xEn,ySt:yEn)-(bw&detected_objects(xSt:xEn,ySt:yEn));
                 end
             end
         end

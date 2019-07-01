@@ -1,4 +1,9 @@
 function [annot_region,mask,ref_coord]=get_annotations(wsi_full_path,xml_full_path,Pref,sq_num)
+% wsi_full_path=wsi_path;
+% xml_full_path=xml_path;
+% sq_num=2;
+
+
 
 openslide_load_library()
 
@@ -61,7 +66,6 @@ for i =1:annotated_regions_num
 end
 
 
-coords=double([x_list_sq;y_list_sq]);
 xf_min=min(x_list_sq);
 xf_max=max(x_list_sq);
 yf_min=min(y_list_sq);
@@ -79,14 +83,16 @@ mask=zeros(int32(yl),int32(xl));
 if length(neg_coord_list)==1
     
 else
-ref_loc=int32([xf_min,yf_min]);
+    ref_loc=int32([xf_min,yf_min]);
 
 
-len_box=double(int32([xl,yl]));
-for i=1:length(neg_coord_list)
-    boundary_points=double(((neg_coord_list{i,1})-[ref_loc(1);ref_loc(2)])+1);
-    bw=poly2mask(boundary_points(1,:),boundary_points(2,:),len_box(2),len_box(1));
-    mask=mask|bw;
-end
+    len_box=double(int32([xl,yl]));
+    for i=1:length(neg_coord_list)
+        if ~isempty(neg_coord_list{i,1})
+            boundary_points=double(((neg_coord_list{i,1})-[ref_loc(1);ref_loc(2)])+1);
+            bw=poly2mask(boundary_points(1,:),boundary_points(2,:),len_box(2),len_box(1));
+            mask=mask|bw;
+        end
+    end
 end
 openslide_close(annot_wsi)
